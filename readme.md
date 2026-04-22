@@ -82,3 +82,6 @@ This module ensures **real-time synchronization between frontend and backend** d
 ### 🔹 Install Dependencies
 ```bash
 pip install fastapi uvicorn
+```
+uvicorn assessment_api:app --reload
+
