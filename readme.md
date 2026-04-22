@@ -83,5 +83,10 @@ This module ensures **real-time synchronization between frontend and backend** d
 ```bash
 pip install fastapi uvicorn
 ```
+## 🔹 Run Backend
+```
 uvicorn assessment_api:app --reload
+```
+## 🔹 Run Frontend
 
+Open assessment.html in browser
