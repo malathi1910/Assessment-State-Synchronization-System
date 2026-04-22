@@ -1,1 +1,80 @@
 
+# 🧩 Assessment State Synchronization System
+
+---
+
+## 📌 Module Overview
+
+This module is a part of a larger online assessment system and is responsible for maintaining synchronization between the **frontend and backend**.  
+
+It ensures that all assessment-related states such as **questions, timer, and submission** remain consistent and reliable throughout the exam process.
+
+---
+
+## 🚀 Key Features
+
+### 📝 1. Question State Synchronization
+- Captures user answers in real-time  
+- Sends responses to backend via API  
+- Stores answers dynamically  
+- Prevents data loss during the exam  
+
+---
+
+### ⏱ 2. Timer State Synchronization
+- Timer controlled by backend  
+- Frontend fetches remaining time continuously  
+- Ensures consistent countdown for users  
+- Automatically submits exam when time expires  
+
+---
+
+### 🔒 3. Submission State Management
+- Allows only one submission per user  
+- Prevents duplicate submissions  
+- Locks answers after submission  
+- Ensures secure and controlled submission  
+
+---
+
+### 📊 4. Result & Feedback System
+- Displays score immediately after submission  
+- Highlights:
+  - ✅ Correct answers  
+  - ❌ Incorrect answers  
+- Provides user feedback messages  
+
+---
+
+### 🚫 5. State Consistency Checks
+- Blocks answer changes after submission  
+- Prevents submission after time expiry  
+- Ensures only one submission per user  
+- Keeps results immutable (cannot be changed)  
+
+---
+
+## 🛠️ Technologies Used
+- Python  
+- FastAPI  
+- HTML  
+- CSS  
+- JavaScript  
+- REST APIs  
+
+---
+
+## 🌐 API Endpoints
+
+- `/save-answer` → Save user answers  
+- `/timer` → Get remaining time  
+- `/submit` → Submit final answers  
+- `/result/{user_id}` → Retrieve final result  
+
+---
+
+## ▶️ How to Run the Module
+
+### 🔹 Step 1: Install Dependencies
+```bash
+pip install fastapi uvicorn
