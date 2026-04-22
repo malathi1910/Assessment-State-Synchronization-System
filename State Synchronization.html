@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Online Exam</title>
+
+<style>
+body { font-family: Arial; background: #f3e8ff; }
+.container { width: 60%; margin: auto; background: white; padding: 20px; border-radius: 10px; margin-top: 30px; }
+
+#timer { text-align: center; font-size: 20px; }
+
+.progress { width: 100%; background: #ddd; }
+.progress-bar { height: 15px; width: 0%; background: purple; }
+
+.question { margin-bottom: 15px; padding:10px; border-radius:8px; }
+.correct { background: #d1fae5; }   /* green */
+.wrong { background: #fee2e2; }     /* red */
+
+button { padding: 10px; background: purple; color: white; border: none; cursor: pointer; }
+
+#messageBox { text-align:center; font-weight:bold; margin:10px; color:purple; }
+
+#resultBox {
+    text-align:center;
+    font-size:20px;
+    margin-top:15px;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Computer Science Exam</h2>
+
+<h3 id="timer">Loading...</h3>
+
+<div class="progress">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div id="messageBox"></div>
+
+<!-- QUESTIONS -->
+
+<div class="question">
+<p>1. CPU stands for?</p>
+<input type="radio" name="q1" value="Central Processing Unit" data-correct="true"> Central Processing Unit<br>
+<input type="radio" name="q1" value="Wrong"> Wrong<br>
+</div>
+
+<div class="question">
+<p>2. FIFO uses?</p>
+<input type="radio" name="q2" value="Queue" data-correct="true"> Queue<br>
+<input type="radio" name="q2" value="Stack"> Stack<br>
+</div>
+
+<div class="question">
+<p>3. Which language is used for web styling?</p>
+<input type="radio" name="q3" value="CSS" data-correct="true"> CSS<br>
+<input type="radio" name="q3" value="HTML"> HTML<br>
+</div>
+
+<div class="question">
+<p>4. What does SQL stand for?</p>
+<input type="radio" name="q4" value="Structured Query Language" data-correct="true"> Structured Query Language<br>
+<input type="radio" name="q4" value="Simple Query Language"> Simple Query Language<br>
+</div>
+
+<div class="question">
+<p>5. Which is an operating system?</p>
+<input type="radio" name="q5" value="Linux" data-correct="true"> Linux<br>
+<input type="radio" name="q5" value="Chrome"> Chrome<br>
+</div>
+
+<button id="submitBtn" onclick="submitExam()">Submit</button>
+
+<div id="resultBox"></div>
+
+</div>
+
+<script>
+let user_id = 1;
+let answers = {};
+let totalQuestions = 5;
+let isSubmitted = false;
+
+// SAVE ANSWERS
+document.querySelectorAll('input[type="radio"]').forEach(opt=>{
+    opt.addEventListener('change', async ()=>{
+        let qid = opt.name.replace('q','');
+        answers[qid] = opt.value;
+
+        updateProgress();
+
+        await fetch('http://127.0.0.1:8000/save-answer',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                user_id:user_id,
+                question_id:parseInt(qid),
+                answer:opt.value
+            })
+        });
+    });
+});
+
+// PROGRESS
+function updateProgress(){
+    let percent = (Object.keys(answers).length / totalQuestions)*100;
+    document.getElementById("progressBar").style.width = percent + "%";
+}
+
+// TIMER
+async function updateTimer(){
+    try{
+        let res = await fetch('http://127.0.0.1:8000/timer');
+        let data = await res.json();
+
+        let sec = data.remaining_time;
+        let min = Math.floor(sec/60);
+        let rem = sec % 60;
+
+        document.getElementById("timer").innerText =
+            `Time: ${min}:${rem < 10 ? '0'+rem : rem}`;
+
+        if(sec <= 0){
+            submitExam();
+        }
+
+    }catch{
+        document.getElementById("timer").innerText="Timer error";
+    }
+}
+
+setInterval(updateTimer,1000);
+updateTimer();
+
+// MESSAGE
+function showMessage(msg){
+    document.getElementById("messageBox").innerText = msg;
+}
+
+// SUBMIT + RESULT DISPLAY
+function submitExam(){
+
+    if(isSubmitted){
+        showMessage("⚠️ You already submitted!");
+        return;
+    }
+
+    isSubmitted = true;
+    document.getElementById("submitBtn").disabled = true;
+
+    fetch('http://127.0.0.1:8000/submit',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            user_id:user_id,
+            answers:answers
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if(data.message === "Submitted successfully"){
+            showMessage("✅ Submitted successfully!");
+            showResult();   // 👈 SHOW RESULT
+        }
+        else if(data.message === "Already submitted"){
+            showMessage("⚠️ Already submitted!");
+        }
+        else if(data.message === "Time Over"){
+            showMessage("⏱ Time Over!");
+            showResult();   // still show result
+        }
+
+    })
+    .catch(()=>{
+        showMessage("❌ Submission failed");
+    });
+}
+
+// RESULT FUNCTION
+function showResult(){
+
+    let score = 0;
+
+    document.querySelectorAll('.question').forEach(q => {
+
+        let selected = q.querySelector('input[type="radio"]:checked');
+        let correct = q.querySelector('input[data-correct="true"]');
+
+        if(selected && selected.dataset.correct === "true"){
+            score++;
+            q.classList.add("correct");
+        } else {
+            q.classList.add("wrong");
+        }
+
+        // disable all options after submit
+        q.querySelectorAll('input').forEach(inp => inp.disabled = true);
+    });
+
+    document.getElementById("resultBox").innerText =
+        `Your Score: ${score} / ${totalQuestions}`;
+}
+</script>
+
+</body>
+</html>
